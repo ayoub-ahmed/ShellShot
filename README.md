@@ -54,44 +54,56 @@ No application-level MobileNetV2 or ResNet preprocessing is applied a second tim
 ### Linux/macOS
 
 ```bash
-cd backend
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-cd ..
-python -m uvicorn backend.main:app --reload --port 8000
+python3 -m venv backend/.venv
+source backend/.venv/bin/activate
+pip install -r backend/requirements.txt
+python -m uvicorn backend.main:app --reload --host 127.0.0.1 --port 8000
 ```
 
 ### Windows
 
 ```powershell
-cd backend
-python -m venv .venv
-.venv\Scripts\activate
-pip install -r requirements.txt
-cd ..
-python -m uvicorn backend.main:app --reload --port 8000
+py -3 -m venv backend\.venv
+backend\.venv\Scripts\Activate.ps1
+pip install -r backend\requirements.txt
+python -m uvicorn backend.main:app --reload --host 127.0.0.1 --port 8000
 ```
 
 When run directly, the API is available at `/api/healthz`, `/api/docs`, and `/api/openapi.json`. Through the managed project preview, the same paths are used.
 
 ## Frontend setup
 
+Run this from the repository root in a second terminal while the backend is running:
+
+### Linux/macOS
+
 ```bash
-cd artifacts/shellshot
-pnpm install
-pnpm run dev
+PORT=5173 BASE_PATH=/ API_PROXY_TARGET=http://127.0.0.1:8000 \
+  pnpm --filter @workspace/shellshot run dev
 ```
 
-From the workspace root, the managed workflow is:
+### Windows PowerShell
+
+```bash
+$env:PORT = "5173"
+$env:BASE_PATH = "/"
+$env:API_PROXY_TARGET = "http://127.0.0.1:8000"
+pnpm --filter @workspace/shellshot run dev
+```
+
+Open `http://localhost:5173`. The Vite development proxy forwards browser requests from `/api/*` to the FastAPI server on port 8000.
+
+From the Replit workspace root, the managed workflow is:
 
 ```bash
 pnpm --filter @workspace/shellshot run dev
 ```
 
+The managed workflow supplies its own port and path settings and does not need `API_PROXY_TARGET`.
+
 ## Environment variables
 
-Copy `backend/.env.example` to `.env` when running the backend directly:
+The backend has sensible defaults for local development. To customize them, export these variables before starting FastAPI:
 
 ```dotenv
 FRONTEND_URL=http://localhost:5173
@@ -99,6 +111,8 @@ CONFIDENCE_THRESHOLD=0.60
 MAX_FILE_SIZE_MB=10
 MODEL_DIR=./backend/models
 ```
+
+The application does not load `.env` files automatically, so use your shell's environment-variable syntax or a process manager to apply custom values.
 
 `Unknown` remains a real model class. A prediction is marked `low_confidence` when its confidence is below `CONFIDENCE_THRESHOLD`, and `unknown` when the model selects the Unknown class.
 
