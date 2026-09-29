@@ -40,10 +40,12 @@ backend/models/efficientnet.keras
 
 Each available model is loaded once during FastAPI startup. One failed model does not prevent other models from loading.
 
-The current MobileNetV2 and ResNet50 models include preprocessing inside the saved Keras model. The backend therefore only:
+The backend reads each loaded model's fixed image input size. For example, the supplied EfficientNetV2S checkpoint expects `384x384`, while many MobileNetV2 and ResNet50 checkpoints expect `224x224`. The backend resizes with padding to the size declared by the loaded model, rather than assuming one global size.
+
+The current models include preprocessing inside the saved Keras model. The backend therefore only:
 
 1. Converts the upload to RGB.
-2. Resizes with padding to 224x224.
+2. Resizes with padding to the model's input size.
 3. Adds the batch dimension.
 4. Passes the image to the loaded model.
 

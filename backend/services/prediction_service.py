@@ -9,7 +9,7 @@ from PIL import Image
 CLASS_NAMES = ["Green Turtle", "Leatherback Turtle", "Loggerhead Turtle", "Unknown"]
 
 
-def resize_with_pad(image: Image.Image, target_size: tuple[int, int] = (224, 224)) -> Image.Image:
+def resize_with_pad(image: Image.Image, target_size: tuple[int, int]) -> Image.Image:
     """Resize an image without stretching it, padding the shorter side."""
     image = image.convert("RGB")
     target_width, target_height = target_size
@@ -24,10 +24,21 @@ def resize_with_pad(image: Image.Image, target_size: tuple[int, int] = (224, 224
     return canvas
 
 
-def prepare_image(file_bytes: bytes) -> np.ndarray:
+def prepare_image(file_bytes: bytes, target_size: tuple[int, int]) -> np.ndarray:
     image = Image.open(BytesIO(file_bytes))
-    padded = resize_with_pad(image)
+    padded = resize_with_pad(image, target_size)
     return np.expand_dims(np.asarray(padded, dtype=np.float32), axis=0)
+
+
+def model_input_size(model: Any) -> tuple[int, int]:
+    input_shape = model.input_shape
+    if isinstance(input_shape, list) or len(input_shape) != 4:
+        raise ValueError("The model must accept one image input.")
+
+    height, width = input_shape[1], input_shape[2]
+    if not isinstance(height, int) or not isinstance(width, int):
+        raise ValueError("The model must define a fixed image input size.")
+    return width, height
 
 
 def _probabilities(raw_output: Any) -> np.ndarray:
@@ -48,7 +59,7 @@ def _probabilities(raw_output: Any) -> np.ndarray:
 
 
 def predict(model: Any, file_bytes: bytes) -> tuple[str, float, dict[str, float]]:
-    image = prepare_image(file_bytes)
+    image = prepare_image(file_bytes, model_input_size(model))
     raw_output = model.predict(image, verbose=0)
     probabilities = _probabilities(raw_output)
     predicted_index = int(np.argmax(probabilities))

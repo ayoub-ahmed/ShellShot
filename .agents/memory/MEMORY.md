@@ -1,1 +1,2 @@
 - [ShellShot runtime](shellshot-runtime.md) — the managed API workflow starts inside its artifact, so root-level FastAPI startup needs a repository-root handoff.
+- [ShellShot model loading](shellshot-model-loading.md) — saved Keras models may need registered preprocessing functions and model-specific input sizes.

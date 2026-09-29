@@ -56,7 +56,18 @@ class ModelService:
                 import tensorflow as tf
 
                 logger.info("Loading %s...", definition["name"])
-                loaded = tf.keras.models.load_model(model_path)
+                preprocessors = {
+                    "mobilenet": tf.keras.applications.mobilenet_v2.preprocess_input,
+                    "resnet": tf.keras.applications.resnet50.preprocess_input,
+                    "efficientnet": tf.keras.applications.efficientnet_v2.preprocess_input,
+                }
+                loaded = tf.keras.models.load_model(
+                    model_path,
+                    custom_objects={"preprocess_input": preprocessors[model_id]},
+                )
+                output_shape = loaded.output_shape
+                if isinstance(output_shape, list) or not output_shape or output_shape[-1] != 4:
+                    raise ValueError("The model must return four class outputs.")
                 self._models[model_id] = LoadedModel(model=loaded, model_id=model_id)
                 logger.info("%s loaded successfully.", definition["name"])
             except Exception as exc:

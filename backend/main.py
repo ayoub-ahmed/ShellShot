@@ -154,6 +154,8 @@ async def unhandled_exception(_: Request, exc: Exception) -> JSONResponse:
 
 # The shared proxy forwards /api/* without stripping the prefix. Mounting the
 # documented FastAPI app keeps /docs and /openapi.json available at /api/docs
-# and /api/openapi.json while keeping route definitions clean.
-app = FastAPI(docs_url=None, openapi_url=None)
+# and /api/openapi.json while keeping route definitions clean. The lifespan
+# belongs to the root app because mounted sub-app lifespans are not executed by
+# Starlette when the parent application starts.
+app = FastAPI(lifespan=lifespan, docs_url=None, openapi_url=None)
 app.mount("/api", api)
