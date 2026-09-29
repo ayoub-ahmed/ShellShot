@@ -1,0 +1,1 @@
+- [ShellShot runtime](shellshot-runtime.md) — the managed API workflow starts inside its artifact, so root-level FastAPI startup needs a repository-root handoff.

@@ -1,0 +1,949 @@
+Build a complete full-stack web application called "ShellShot" for my Samsung Innovation Campus AI Capstone Project.
+
+IMPORTANT:
+This is a REAL machine-learning image classification application, not a mock/demo AI interface.
+
+The application must be designed so that trained TensorFlow/Keras models can be placed into the backend and used for real predictions.
+
+==================================================
+PROJECT
+==================================================
+
+Project name:
+ShellShot
+
+Purpose:
+ShellShot is an AI-powered sea turtle image classification application.
+
+The user uploads an image of a turtle or an environment/image containing no turtle.
+
+The backend sends the image through a trained deep-learning model and returns:
+
+- Predicted class
+- Confidence
+- Probability for every class
+
+Supported classes:
+
+1. Green Turtle
+2. Leatherback Turtle
+3. Loggerhead Turtle
+4. Unknown
+
+"Unknown" represents images where no supported turtle species is detected, such as beaches, rocks, roads, other animals, etc.
+
+The application should be suitable for a university AI capstone presentation.
+
+==================================================
+TECHNOLOGY
+==================================================
+
+FRONTEND:
+
+- React
+- Vite
+- TypeScript
+- Tailwind CSS
+- shadcn/ui
+- React Router
+- Lucide React icons
+
+BACKEND:
+
+- Python
+- FastAPI
+- TensorFlow / Keras
+- NumPy
+- Pillow
+- Uvicorn
+
+Communication:
+
+React frontend -> REST API -> FastAPI -> TensorFlow/Keras model -> prediction -> JSON -> React
+
+Do NOT replace the Python FastAPI backend with Node.js.
+
+The ML models are TensorFlow/Keras models and must remain Python/TensorFlow based.
+
+==================================================
+PROJECT STRUCTURE
+==================================================
+
+Create:
+
+/
+├── frontend/
+│   ├── src/
+│   ├── public/
+│   ├── package.json
+│   └── ...
+│
+├── backend/
+│   ├── main.py
+│   ├── requirements.txt
+│   ├── models/
+│   │   ├── mobilenetv2.keras
+│   │   ├── resnet50.keras
+│   │   └── efficientnet.keras
+│   ├── services/
+│   │   ├── model_service.py
+│   │   └── prediction_service.py
+│   └── ...
+│
+├── README.md
+└── .gitignore
+
+The model files may not exist initially.
+
+The application must still run without them and show a clear "Model unavailable" state instead of crashing.
+
+==================================================
+MACHINE LEARNING MODELS
+==================================================
+
+The application must support:
+
+- MobileNetV2
+- ResNet50
+- EfficientNet
+
+The model selector in the frontend should allow:
+
+MobileNetV2
+ResNet50
+EfficientNet
+
+The backend should load the models ONCE when the server starts.
+
+Do NOT reload the model for every prediction.
+
+Use a model service that manages loaded models.
+
+Example concept:
+
+models = {
+    "mobilenet": ...,
+    "resnet": ...,
+    "efficientnet": ...
+}
+
+Create an abstraction so adding another model later is easy.
+
+==================================================
+IMPORTANT MODEL PREPROCESSING
+==================================================
+
+The current MobileNetV2 and ResNet50 models were trained with preprocessing INSIDE the Keras model.
+
+For example, the MobileNetV2 model contains:
+
+tf.keras.applications.mobilenet_v2.preprocess_input
+
+inside the model.
+
+Therefore:
+
+DO NOT preprocess the image twice.
+
+The backend should:
+
+1. Receive the uploaded image.
+2. Convert it to RGB.
+3. Resize it consistently to 224x224 using resize-with-pad.
+4. Add the batch dimension.
+5. Send the image to the Keras model.
+6. Let the model perform its internal preprocessing.
+
+Do NOT call:
+
+mobilenet_v2.preprocess_input()
+
+outside the model if the saved model already contains it.
+
+The same principle applies to the ResNet model if its preprocessing layer is included in the saved model.
+
+Create model-specific preprocessing configuration so EfficientNet can have its own preprocessing if necessary.
+
+==================================================
+IMAGE INPUT
+==================================================
+
+Accept:
+
+- JPG
+- JPEG
+- PNG
+- WEBP
+
+Maximum file size:
+10 MB
+
+Validate the file type.
+
+If the uploaded file is invalid, return a useful error.
+
+The frontend should show:
+
+- Image preview
+- File name
+- File size
+- Remove image button
+- Predict button
+
+Support drag-and-drop.
+
+Also support normal file selection.
+
+==================================================
+PREDICTION API
+==================================================
+
+Create:
+
+POST /api/predict
+
+Accept:
+
+multipart/form-data
+
+Parameters:
+
+file:
+uploaded image
+
+model:
+mobilenet
+resnet
+efficientnet
+
+Example:
+
+POST /api/predict?model=mobilenet
+
+Return JSON similar to:
+
+{
+  "success": true,
+  "model": "MobileNetV2",
+  "prediction": "Green Turtle",
+  "confidence": 0.9421,
+  "probabilities": {
+    "Green Turtle": 0.9421,
+    "Leatherback Turtle": 0.0123,
+    "Loggerhead Turtle": 0.0312,
+    "Unknown": 0.0144
+  }
+}
+
+Confidence must be returned as a number between 0 and 1.
+
+Also return a human-readable percentage on the frontend.
+
+==================================================
+CONFIDENCE / UNKNOWN HANDLING
+==================================================
+
+The application has four actual model classes including Unknown.
+
+Do NOT automatically replace every low-confidence prediction with a turtle species.
+
+If the model predicts:
+
+Unknown
+
+display:
+
+"No supported sea turtle detected"
+
+If confidence is below a configurable threshold, for example:
+
+0.60
+
+return/display:
+
+"Low confidence"
+
+The threshold must be stored in configuration so it can easily be changed.
+
+Do not hard-code the threshold throughout the application.
+
+Example backend configuration:
+
+CONFIDENCE_THRESHOLD=0.60
+
+The frontend should clearly distinguish:
+
+- Normal prediction
+- Unknown
+- Low-confidence prediction
+- Error
+
+==================================================
+FRONTEND DESIGN
+==================================================
+
+Create a professional modern AI/wildlife application.
+
+Brand:
+
+ShellShot
+
+Visual style:
+
+- Modern
+- Clean
+- Professional
+- Nature/wildlife inspired
+- Suitable for a university AI capstone presentation
+- Responsive
+- Mobile friendly
+- Desktop friendly
+
+Do not make it look like a generic dashboard template.
+
+Use subtle sea/ocean visual elements.
+
+Use high-quality turtle/wildlife imagery only where appropriate.
+
+Avoid excessive animations.
+
+Use smooth but subtle transitions.
+
+==================================================
+MAIN PAGE
+==================================================
+
+Create a landing/prediction page.
+
+Hero section:
+
+ShellShot
+
+"AI-Powered Sea Turtle Recognition"
+
+Subtitle:
+
+"Identify sea turtle species from images using deep learning."
+
+Primary CTA:
+
+"Analyze Image"
+
+Secondary information:
+
+"Powered by TensorFlow and transfer learning"
+
+Hero should have a beautiful ocean/turtle visual.
+
+==================================================
+PREDICTION INTERFACE
+==================================================
+
+Create a large central image-analysis card.
+
+At the top:
+
+"Upload an image"
+
+Drag-and-drop area.
+
+Text:
+
+"Drop an image here or click to browse"
+
+Supported formats:
+
+JPG, JPEG, PNG, WEBP
+
+Maximum size:
+
+10 MB
+
+After upload:
+
+Show image preview.
+
+Below the image:
+
+Model selector.
+
+Label:
+
+"Select AI Model"
+
+Options:
+
+MobileNetV2
+ResNet50
+EfficientNet
+
+Default:
+
+MobileNetV2
+
+Button:
+
+"Analyze Image"
+
+While processing:
+
+Show loading animation.
+
+Text:
+
+"Analyzing image..."
+
+Disable duplicate submissions while prediction is running.
+
+==================================================
+RESULT SECTION
+==================================================
+
+After prediction, display a large result card.
+
+Example:
+
+Prediction
+
+Green Turtle
+
+94.21% confidence
+
+Use a turtle icon or appropriate Lucide icon.
+
+Then display all class probabilities:
+
+Green Turtle     94.21%
+Leatherback      1.23%
+Loggerhead       3.12%
+Unknown          1.44%
+
+Use horizontal probability bars.
+
+Sort the probability display from highest to lowest, but always make the class labels clear.
+
+Also display:
+
+Model used:
+MobileNetV2
+
+==================================================
+RESULT STATES
+==================================================
+
+Create different visual states.
+
+1. Turtle detected
+
+Example:
+
+Green Turtle
+
+94.21% confidence
+
+2. Unknown
+
+Example:
+
+Unknown
+
+"No supported sea turtle detected in this image."
+
+3. Low confidence
+
+Example:
+
+Low Confidence
+
+"The model is not sufficiently confident about this prediction."
+
+4. Error
+
+Example:
+
+"Unable to analyze this image."
+
+Show useful error information without exposing backend stack traces.
+
+==================================================
+SPECIES INFORMATION
+==================================================
+
+After a confident turtle prediction, display a small information card.
+
+Green Turtle:
+"Green turtles are marine turtles recognized by their distinctive body shape and diet that changes as they mature."
+
+Loggerhead Turtle:
+"Loggerhead turtles are characterized by their large heads and powerful jaws."
+
+Leatherback Turtle:
+"Leatherback turtles are the largest living sea turtles and have a distinctive flexible shell."
+
+Keep the information concise.
+
+Do not pretend this information came from the ML model.
+
+==================================================
+MODEL COMPARISON
+==================================================
+
+Create a separate "Models" or "About Models" page.
+
+Explain:
+
+MobileNetV2
+ResNet50
+EfficientNet
+
+Explain that the project uses transfer learning with pretrained convolutional neural networks.
+
+Display model cards.
+
+Each card should contain:
+
+- Model name
+- Architecture type
+- Short description
+- "Available" / "Unavailable" status based on backend API
+- Predict button or selection button
+
+Do NOT invent accuracy values.
+
+If accuracy values are not provided by the backend, do not display fake accuracy.
+
+==================================================
+MODEL PERFORMANCE PAGE
+==================================================
+
+Create a "Performance" page.
+
+This page should be designed to display actual evaluation results when we provide them.
+
+Sections:
+
+Test Accuracy
+Macro F1
+Per-Class Recall
+Confusion Matrix
+Land vs Underwater Performance
+
+Do NOT invent numbers.
+
+If no evaluation data has been configured, display:
+
+"Evaluation results will appear here after model evaluation data is connected."
+
+The project specifically evaluates:
+
+- Accuracy
+- Macro F1
+- Per-class recall
+- Confusion matrix
+- Land vs underwater performance
+
+==================================================
+ABOUT PROJECT PAGE
+==================================================
+
+Create an About page.
+
+Title:
+
+"About ShellShot"
+
+Explain:
+
+ShellShot is a deep-learning project developed as part of the Samsung Innovation Campus AI Course Capstone Project.
+
+The system uses transfer learning to classify sea turtle images into:
+
+- Green Turtle
+- Leatherback Turtle
+- Loggerhead Turtle
+- Unknown
+
+The project demonstrates:
+
+- Computer vision
+- Image classification
+- Transfer learning
+- Fine-tuning
+- Model evaluation
+- Full-stack AI application development
+
+==================================================
+TECHNICAL ARCHITECTURE PAGE
+==================================================
+
+Create a simple architecture visualization:
+
+User
+ ↓
+React Frontend
+ ↓
+FastAPI REST API
+ ↓
+TensorFlow/Keras
+ ↓
+Selected CNN Model
+ ↓
+Prediction
+ ↓
+Confidence + Probabilities
+ ↓
+React Result UI
+
+Make it visually attractive.
+
+==================================================
+API HEALTH CHECK
+==================================================
+
+Create:
+
+GET /api/health
+
+Return:
+
+{
+  "status": "ok"
+}
+
+Also create:
+
+GET /api/models
+
+Return something like:
+
+{
+  "models": [
+    {
+      "id": "mobilenet",
+      "name": "MobileNetV2",
+      "available": true
+    },
+    {
+      "id": "resnet",
+      "name": "ResNet50",
+      "available": true
+    },
+    {
+      "id": "efficientnet",
+      "name": "EfficientNet",
+      "available": false
+    }
+  ]
+}
+
+The frontend should use this endpoint to show which models are actually available.
+
+Do not hard-code "available" if the backend can determine it.
+
+==================================================
+BACKEND SECURITY / VALIDATION
+==================================================
+
+Implement:
+
+- File type validation
+- File size validation
+- CORS configuration
+- Proper HTTP status codes
+- Input validation
+- Error handling
+- No stack traces returned to users
+- Temporary uploaded files should not remain unnecessarily on disk
+
+Do not store uploaded images permanently unless explicitly configured.
+
+==================================================
+CORS
+==================================================
+
+Configure CORS using environment variables.
+
+Example:
+
+FRONTEND_URL=http://localhost:5173
+
+Allow the frontend to communicate with FastAPI.
+
+==================================================
+ENVIRONMENT VARIABLES
+==================================================
+
+Create:
+
+backend/.env.example
+
+Include:
+
+FRONTEND_URL=http://localhost:5173
+CONFIDENCE_THRESHOLD=0.60
+MAX_FILE_SIZE_MB=10
+MODEL_DIR=./models
+
+Do not put secrets in source code.
+
+==================================================
+API DOCUMENTATION
+==================================================
+
+FastAPI should expose Swagger documentation.
+
+The following should work:
+
+/docs
+
+and
+
+/openapi.json
+
+==================================================
+ERROR HANDLING
+==================================================
+
+Backend errors should return structured JSON:
+
+{
+  "success": false,
+  "error": {
+    "code": "MODEL_UNAVAILABLE",
+    "message": "The selected model is not currently available."
+  }
+}
+
+Possible error codes:
+
+INVALID_FILE_TYPE
+FILE_TOO_LARGE
+MODEL_UNAVAILABLE
+PREDICTION_FAILED
+INVALID_MODEL
+INTERNAL_ERROR
+
+Frontend should display friendly messages.
+
+==================================================
+LOADING / UX
+==================================================
+
+During prediction:
+
+- Disable Analyze button
+- Show spinner
+- Show "Analyzing image..."
+- Do not allow duplicate requests
+
+After result:
+
+- Show prediction
+- Show confidence
+- Show probability distribution
+- Show selected model
+- Allow "Analyze another image"
+
+==================================================
+RESPONSIVE DESIGN
+==================================================
+
+The entire application must work well on:
+
+- Desktop
+- Tablet
+- Mobile
+
+Mobile layout should stack cards vertically.
+
+Image preview must never overflow the screen.
+
+==================================================
+ACCESSIBILITY
+==================================================
+
+Use:
+
+- Semantic HTML
+- Accessible buttons
+- Labels
+- Keyboard navigation
+- Good contrast
+- Alt text for images
+- ARIA labels where appropriate
+
+==================================================
+CODE QUALITY
+==================================================
+
+Use clean architecture.
+
+Frontend:
+
+components/
+pages/
+services/
+hooks/
+types/
+lib/
+
+Backend:
+
+routers/
+services/
+models/
+schemas/
+config/
+
+Keep API calls in a dedicated frontend service.
+
+For example:
+
+src/services/api.ts
+
+Do not put fetch calls throughout random components.
+
+Create TypeScript interfaces for API responses.
+
+==================================================
+NO MOCK AI
+==================================================
+
+IMPORTANT:
+
+Do NOT create fake prediction logic such as:
+
+if image then return "Green Turtle"
+
+Do NOT use random predictions.
+
+Do NOT use hard-coded fake confidence values.
+
+The prediction must come from the TensorFlow/Keras model.
+
+If the model file is missing, clearly return:
+
+MODEL_UNAVAILABLE
+
+and let the frontend display an appropriate message.
+
+==================================================
+MODEL FILES
+==================================================
+
+The user will later place trained models into:
+
+backend/models/
+
+Expected:
+
+backend/models/mobilenetv2.keras
+backend/models/resnet50.keras
+backend/models/efficientnet.keras
+
+Build the application so these files can simply be copied into that folder.
+
+Do not require retraining.
+
+==================================================
+MODEL LOADING
+==================================================
+
+Load models during FastAPI startup.
+
+Avoid loading models on every request.
+
+If one model fails to load, the other models should still be available.
+
+Log model loading status.
+
+Example startup logs:
+
+Loading MobileNetV2...
+MobileNetV2 loaded successfully.
+
+Loading ResNet50...
+ResNet50 loaded successfully.
+
+EfficientNet model not found.
+EfficientNet unavailable.
+
+The API should continue running.
+
+==================================================
+README
+==================================================
+
+Create a detailed README.md explaining:
+
+1. Project overview
+2. Technology stack
+3. Folder structure
+4. How to install frontend
+5. How to install backend
+6. How to install Python dependencies
+7. How to place model files
+8. How to start FastAPI
+9. How to start React
+10. API endpoints
+11. Model preprocessing
+12. Environment variables
+13. Troubleshooting
+
+Include commands.
+
+Backend:
+
+python -m venv .venv
+
+Windows:
+
+.venv\Scripts\activate
+
+Linux/macOS:
+
+source .venv/bin/activate
+
+pip install -r requirements.txt
+
+Run:
+
+uvicorn main:app --reload --port 8000
+
+Frontend:
+
+npm install
+
+npm run dev
+
+==================================================
+DOCKER OPTIONAL
+==================================================
+
+If practical, create a Dockerfile for the FastAPI backend.
+
+Do not make Docker mandatory for local development.
+
+==================================================
+FINAL REQUIREMENT
+==================================================
+
+Build the actual working application, not just static screens.
+
+The frontend must communicate with the FastAPI backend.
+
+The backend must expose real prediction endpoints.
+
+The architecture must allow us to put our actual trained .keras models into backend/models/ and immediately use them.
+
+Use clean, professional UI suitable for demonstrating the ShellShot AI capstone project to instructors.
+
+Do not invent model accuracy or evaluation results.
+
+Do not invent AI predictions.
+
+Do not add unnecessary authentication, payment systems, databases, or user accounts.
+
+This is an AI image classification application, not a SaaS platform.
+
+Focus on making the image upload -> API -> TensorFlow model -> prediction -> result workflow fully functional.

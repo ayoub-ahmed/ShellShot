@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "ShellShot"
+description = "A full-stack AI sea turtle image classification app for the Samsung Innovation Campus capstone, with real TensorFlow-backed predictions, model availability status, and evaluation-ready presentation pages."
+version = "1.0.0"
+id = "artifacts/shellshot"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 24303
+
+[services.development]
+run = "pnpm --filter @workspace/shellshot run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/shellshot", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/shellshot/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "24303"
+BASE_PATH = "/"

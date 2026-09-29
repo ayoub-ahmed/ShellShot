@@ -1,0 +1,1 @@
+"""ShellShot FastAPI backend."""
