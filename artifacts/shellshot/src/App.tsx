@@ -17,9 +17,6 @@ import NotFound from '@/pages/not-found';
 const queryClient = new QueryClient();
 const navItems = [
   { href: '/', label: 'Analyze', icon: ScanLine },
-  { href: '/models', label: 'Models', icon: Cpu },
-  { href: '/performance', label: 'Performance', icon: Activity },
-  { href: '/about', label: 'About', icon: CircleHelp },
 ];
 
 function LogoMark() {
