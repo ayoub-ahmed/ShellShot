@@ -11,7 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from backend.config import settings
-from backend.services.model_service import MODEL_DEFINITIONS, ModelService
+from backend.services.model_service import ModelService
 from backend.services.prediction_service import predict
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s %(message)s")
@@ -90,17 +90,17 @@ async def predict_image(
     file: Annotated[UploadFile, File(...)],
     model: Annotated[str, Query(...)],
 ) -> JSONResponse:
-    if model not in MODEL_DEFINITIONS:
+    if not model_service.is_known(model):
         return error_response(
             "INVALID_MODEL",
-            "Select one of the supported models: MobileNetV2, ResNet50, or EfficientNet.",
+            f"The model '{model}' is not recognized. Place its .keras or .h5 file in backend/models/.",
             400,
         )
 
     if not model_service.is_available(model):
         return error_response(
             "MODEL_UNAVAILABLE",
-            "The selected model is not currently available. Add its .keras file to backend/models/.",
+            "The selected model is not currently available. Check its file in backend/models/.",
             503,
         )
 
@@ -121,14 +121,18 @@ async def predict_image(
         )
 
     try:
-        prediction, confidence, probabilities = predict(model_service.get(model).model, content)  # type: ignore[union-attr]
+        loaded = model_service.get(model)
+        if not loaded:
+            return error_response("MODEL_UNAVAILABLE", "Model object not available.", 503)
+
+        prediction, confidence, probabilities = predict(loaded.model, content)
         status = "unknown" if prediction == "Unknown" else (
             "low_confidence" if confidence < settings.confidence_threshold else "detected"
         )
         return JSONResponse(
             content={
                 "success": True,
-                "model": MODEL_DEFINITIONS[model]["name"],
+                "model": loaded.metadata.name,
                 "modelId": model,
                 "prediction": prediction,
                 "confidence": confidence,

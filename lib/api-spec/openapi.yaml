@@ -68,7 +68,6 @@ paths:
           required: true
           schema:
             type: string
-            enum: [mobilenet, resnet, efficientnet]
       requestBody:
         required: true
         content:
@@ -138,7 +137,6 @@ components:
       properties:
         id:
           type: string
-          enum: [mobilenet, resnet, efficientnet]
         name:
           type: string
         architecture:

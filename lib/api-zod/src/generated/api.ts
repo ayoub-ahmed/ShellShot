@@ -32,7 +32,7 @@ export const HealthCheckAliasResponse = zod.object({
  */
 export const ListModelsResponse = zod.object({
   "models": zod.array(zod.object({
-  "id": zod.enum(['mobilenet', 'resnet', 'efficientnet']),
+  "id": zod.string(),
   "name": zod.string(),
   "architecture": zod.string(),
   "description": zod.string(),
@@ -46,7 +46,7 @@ export const ListModelsResponse = zod.object({
  * @summary Classify a sea turtle image
  */
 export const PredictImageQueryParams = zod.object({
-  "model": zod.enum(['mobilenet', 'resnet', 'efficientnet'])
+  "model": zod.coerce.string()
 })
 
 export const PredictImageBody = zod.object({

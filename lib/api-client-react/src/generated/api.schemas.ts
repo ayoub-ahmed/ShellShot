@@ -19,17 +19,8 @@ export interface ApiError {
   error: ApiErrorDetail;
 }
 
-export type ModelInfoId = typeof ModelInfoId[keyof typeof ModelInfoId];
-
-
-export const ModelInfoId = {
-  mobilenet: 'mobilenet',
-  resnet: 'resnet',
-  efficientnet: 'efficientnet',
-} as const;
-
 export interface ModelInfo {
-  id: ModelInfoId;
+  id: string;
   name: string;
   architecture: string;
   description: string;
@@ -93,15 +84,6 @@ export interface EvaluationResponse {
 }
 
 export type PredictImageParams = {
-model: PredictImageModel;
+model: string;
 };
-
-export type PredictImageModel = typeof PredictImageModel[keyof typeof PredictImageModel];
-
-
-export const PredictImageModel = {
-  mobilenet: 'mobilenet',
-  resnet: 'resnet',
-  efficientnet: 'efficientnet',
-} as const;
 

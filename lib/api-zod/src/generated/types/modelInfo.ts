@@ -5,10 +5,9 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
-import type { ModelInfoId } from './modelInfoId';
 
 export interface ModelInfo {
-  id: ModelInfoId;
+  id: string;
   name: string;
   architecture: string;
   description: string;
