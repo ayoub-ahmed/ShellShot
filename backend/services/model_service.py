@@ -92,49 +92,24 @@ class ModelService:
         self.model_dir = model_dir
         self._models: dict[str, LoadedModel] = {}
         self._metadata_map: dict[str, ModelMetadata] = {}
+        self._aliases: dict[str, str] = {}
         self._errors: dict[str, str] = {}
 
-    def _discover_model_files(self) -> list[tuple[str, Path]]:
-        """Return tuples of (model_id, path) for all .keras and .h5 files in model_dir."""
-        if not self.model_dir.exists():
-            return []
+    def _resolve_id(self, model_id: str) -> str:
+        """Resolve aliases like 'mobilenet' -> 'mobilenetv2' if needed."""
+        return self._aliases.get(model_id, model_id)
 
-        files: list[tuple[str, Path]] = []
-        seen_ids: set[str] = set()
-
+    def load_all(self) -> None:
+        """Scan model_dir and load each detected model file exactly once."""
+        self.model_dir.mkdir(parents=True, exist_ok=True)
         model_paths = sorted(
             list(self.model_dir.glob("*.keras")) + list(self.model_dir.glob("*.h5"))
         )
 
-        for p in model_paths:
-            stem_lower = p.stem.lower()
+        self._metadata_map.clear()
+        self._aliases.clear()
 
-            if "mobilenet" in stem_lower:
-                primary_id = "mobilenet"
-            elif "resnet" in stem_lower:
-                primary_id = "resnet"
-            elif "efficientnet" in stem_lower:
-                primary_id = "efficientnet"
-            else:
-                primary_id = re.sub(r"[^a-z0-9_\-]", "", stem_lower)
-
-            if primary_id not in seen_ids:
-                seen_ids.add(primary_id)
-                files.append((primary_id, p))
-
-            exact_stem_id = re.sub(r"[^a-z0-9_\-]", "", stem_lower)
-            if exact_stem_id not in seen_ids:
-                seen_ids.add(exact_stem_id)
-                files.append((exact_stem_id, p))
-
-        return files
-
-    def load_all(self) -> None:
-        """Scan model_dir and load all detected model files."""
-        self.model_dir.mkdir(parents=True, exist_ok=True)
-        discovered = self._discover_model_files()
-
-        if not discovered:
+        if not model_paths:
             for std_id in ["mobilenet", "resnet", "efficientnet"]:
                 meta = KNOWN_METADATA.get(std_id, {})
                 self._metadata_map[std_id] = ModelMetadata(
@@ -150,10 +125,18 @@ class ModelService:
 
         preproc_map = _get_preprocessors()
 
-        for model_id, model_path in discovered:
+        for model_path in model_paths:
             stem_lower = model_path.stem.lower()
-            known = KNOWN_METADATA.get(model_id) or KNOWN_METADATA.get(stem_lower)
+            model_id = re.sub(r"[^a-z0-9_\-]", "", stem_lower)
 
+            if "mobilenet" in stem_lower:
+                self._aliases["mobilenet"] = model_id
+            elif "resnet" in stem_lower:
+                self._aliases["resnet"] = model_id
+            elif "efficientnet" in stem_lower:
+                self._aliases["efficientnet"] = model_id
+
+            known = KNOWN_METADATA.get(model_id) or KNOWN_METADATA.get(stem_lower)
             if known:
                 meta = ModelMetadata(
                     model_id=model_id,
@@ -201,16 +184,20 @@ class ModelService:
                 logger.exception("Unable to load %s (%s): %s", meta.name, model_id, exc)
 
     def is_available(self, model_id: str) -> bool:
-        return model_id in self._models
+        real_id = self._resolve_id(model_id)
+        return real_id in self._models
 
     def is_known(self, model_id: str) -> bool:
-        return model_id in self._metadata_map
+        real_id = self._resolve_id(model_id)
+        return real_id in self._metadata_map
 
     def get(self, model_id: str) -> LoadedModel | None:
-        return self._models.get(model_id)
+        real_id = self._resolve_id(model_id)
+        return self._models.get(real_id)
 
     def get_error(self, model_id: str) -> str | None:
-        return self._errors.get(model_id)
+        real_id = self._resolve_id(model_id)
+        return self._errors.get(real_id)
 
     def list_models(self) -> list[dict[str, object]]:
         self.load_all()
