@@ -10,12 +10,17 @@ from fastapi import FastAPI, File, Query, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.util import get_remote_address
+
 from backend.config import settings
 from backend.services.model_service import ModelService
 from backend.services.prediction_service import predict
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s %(message)s")
 logger = logging.getLogger("shellshot.api")
+limiter = Limiter(key_func=get_remote_address)
 model_service = ModelService(settings.model_dir)
 
 SUPPORTED_MIME_TYPES = {"image/jpeg", "image/png", "image/webp"}
@@ -42,6 +47,10 @@ api = FastAPI(
     lifespan=lifespan,
     root_path="/api",
 )
+
+api.state.limiter = limiter
+api.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
 api.add_middleware(
     CORSMiddleware,
     allow_origins=[settings.frontend_url, "http://localhost:5173"],
@@ -84,9 +93,10 @@ async def evaluation() -> dict[str, object]:
             "message": "Evaluation data is configured but could not be read.",
         }
 
-
 @api.post("/predict")
+@limiter.limit("10/minute")
 async def predict_image(
+    request: Request,
     file: Annotated[UploadFile, File(...)],
     model: Annotated[str, Query(...)],
 ) -> JSONResponse:
